@@ -7,8 +7,8 @@
 from api import State, util
 import random
 
-class Bot:
 
+class Bot:
     __max_depth = -1
     __randomize = True
 
@@ -25,9 +25,9 @@ class Bot:
 
         val, move = self.value(state)
 
-        return move # to do nothing, return None
+        return move  # to do nothing, return None
 
-    def value(self, state, depth = 0):
+    def value(self, state, depth=0):
         # type: (State, int) -> tuple[float, tuple[int, int]]
         """
         Return the value of this state and the associated move
@@ -55,7 +55,7 @@ class Bot:
 
             # IMPLEMENT: Add a recursive function call so that 'value' will contain the
             # minimax value of 'next_state'
-            value ???
+            value, m = self.value(next_state, depth+1)
 
             if maximizing(state):
                 if value > best_value:
@@ -68,6 +68,7 @@ class Bot:
 
         return best_value, best_move
 
+
 def maximizing(state):
     # type: (State) -> bool
     """
@@ -75,6 +76,7 @@ def maximizing(state):
     :return: True if we're the maximizing player (player 1), false otherwise (player 2).
     """
     return state.whose_turn() == 1
+
 
 def heuristic(state):
     # type: (State) -> float

@@ -5,14 +5,14 @@ A basic adaptive bot. This is part of the second worksheet.
 """
 
 from api import State, util
-import random, os
+import random, os, api.util as u
 
 from sklearn.externals import joblib
 
 DEFAULT_MODEL = os.path.dirname(os.path.realpath(__file__)) + '/model.pkl'
 
-class Bot:
 
+class Bot:
     __max_depth = -1
     __randomize = True
 
@@ -33,7 +33,7 @@ class Bot:
 
         return move
 
-    def value(self, state, alpha=float('-inf'), beta=float('inf'), depth = 0):
+    def value(self, state, alpha=float('-inf'), beta=float('inf'), depth=0):
         """
         Return the value of this state and the associated move
         :param state:
@@ -57,8 +57,8 @@ class Bot:
             random.shuffle(moves)
 
         for move in moves:
-
-            value ???
+            next_state = state.next(move)
+            value, m = self.value(next_state, alpha, beta, depth + 1)
 
             if maximizing(state):
                 if value > best_value:
@@ -73,7 +73,7 @@ class Bot:
 
             # Prune the search tree
             # We know this state will never be chosen, so we stop evaluating its children
-            if ???:
+            if beta <= alpha:
                 break
 
         return best_value, best_move
@@ -95,6 +95,7 @@ class Bot:
         # print(res)
 
         return res
+
 
 def maximizing(state):
     """
@@ -119,13 +120,23 @@ def features(state):
     # How many ships does p2 have in garrisons?
     p2_garrisons = 0.0
 
-    ???
+    my_id = state.whose_turn()
+
+    for mine in state.planets(my_id):
+        p1_garrisons += state.garrison(mine)
+
+    for his in state.planets(state.planets(u.other(id))):
+        p2_garrisons += state.garrison(his)
 
     # How many ships does p1 have in fleets?
     p1_fleets = 0.0
     # How many ships does p2 have in fleets?
     p2_fleets = 0.0
 
-    ???
+    for fleet in state.fleets():
+        if fleet.owner() == 1:
+            p1_fleets += fleet.size()
+        else:
+            p2_fleets += fleet.size()
 
     return p1_garrisons, p2_garrisons, p1_fleets, p2_fleets

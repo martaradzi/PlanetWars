@@ -1,14 +1,8 @@
-#!/usr/bin/env python
-"""
-
-
-"""
-
 from api import State, util
 import random
 
-class Bot:
 
+class Bot:
     __max_depth = -1
     __randomize = True
 
@@ -19,9 +13,9 @@ class Bot:
     def get_move(self, state):
         val, move = self.value(state)
 
-        return move # to do nothing, return None
+        return move  # to do nothing, return None
 
-    def value(self, state, alpha=float('-inf'), beta=float('inf'), depth = 0):
+    def value(self, state, alpha=float('-inf'), beta=float('inf'), depth=0):
         """
         Return the value of this state and the associated move
         :param State state:
@@ -47,13 +41,14 @@ class Bot:
         for move in moves:
 
             next_state = state.next(move)
-            value, _ = ???
+            value, m = self.value(next_state, alpha, beta, depth + 1)
 
             if maximizing(state):
                 if value > best_value:
                     best_value = value
                     best_move = move
                     alpha = best_value
+
             else:
                 if value < best_value:
                     best_value = value
@@ -62,10 +57,11 @@ class Bot:
 
             # Prune the search tree
             # We know this state will never be chosen, so we stop evaluating its children
-            if ???:
+            if beta <= alpha:
                 break
 
         return best_value, best_move
+
 
 def maximizing(state):
     """
@@ -75,6 +71,7 @@ def maximizing(state):
     :return:
     """
     return state.whose_turn() == 1
+
 
 def heuristic(state):
     return util.ratio_ships(state, 1) * 2.0 - 1.0, None
