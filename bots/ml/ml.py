@@ -6,6 +6,7 @@ A basic adaptive bot. This is part of the second worksheet.
 
 from api import State, util
 from operator import mul
+import numpy
 import random, os
 import itertools
 
@@ -121,8 +122,7 @@ def features(state):
     p1_turns_per_ship, p2_turns_per_ship = 0.0, 0.0
     p1_center_planets, p2_center_planets = 0.0, 0.0
     p1_fleets, p2_fleets = 0.0, 0.0
-    p1_fleet_distance, p2_fleet_distance = 0.0, 0.0
-    # p1_planet_captured, p1_planet_captured = 0.0, 0.0
+    # p1_fleet_distance, p2_fleet_distance = 0.0, 0.0
 
     for mine in state.planets(1):
         p1_garrisons += state.garrison(mine)
@@ -142,31 +142,20 @@ def features(state):
         planet = fleet.target()
         if fleet.owner() == 1:
             p1_fleets += fleet.size()
-            p1_fleet_distance += fleet.distance()
-            # if fleet.size() >= 20:
-            # p1_strong_fleets += 1
-            # if state.garrison(planet) <= fleet.size() and fleet.target() != 1:
-            # p1_planet_captured += 1
         else:
             p2_fleets += fleet.size()
-            p2_fleet_distance += fleet.distance()
-            # if fleet.size() >= 20:
-            #     p2_strong_fleets += 1
-            # if state.garrison(planet) <= fleet.size() and fleet.target() != 2:
-            #     p2_planet_captured += 1
 
-    # , p1_turns_per_ship, p2_turns_per_ship, p1_center_planets, p2_center_planets, p1_fleets, p2_fleets, p1_fleet_distance, p2_fleet_distance
+    feature_list = [p1_garrisons, p2_garrisons, p1_fleets, p2_fleets, p1_turns_per_ship, p2_turns_per_ship,
+                          p1_center_planets, p2_center_planets]
 
-    # I reduced the number of features for simplicity (for now)
-    feature_list = tuple([p1_garrisons, p2_garrisons, p1_fleets, p2_fleets])
+    feature_vector = numpy.zeros(120)
+    i = 0
 
-    feature_vector = float()
+    for subset in itertools.combinations_with_replacement(feature_list, 3):
+        product = reduce(mul, subset)
+        feature_vector[i] = product
+        i += 1
 
-    for L in range(1, len(feature_list) + 1):
-        # still need to add the squared value of a subset with a single item
-        for subset in itertools.combinations(feature_list, L):
-            product = reduce(mul, subset)
-            feature_vector += product,
+    # STUCK HERE: convert the numpy array to a tuple of floats...?
 
-    print(feature_vector)
     return feature_vector
