@@ -5,7 +5,9 @@ A basic adaptive bot. This is part of the second worksheet.
 """
 
 from api import State, util
-import random, os, api.util as u
+from operator import mul
+import random, os
+import itertools
 
 from sklearn.externals import joblib
 
@@ -110,33 +112,61 @@ def features(state):
     # type: (State) -> tuple[float, ...]
     """
     Extract features from this state. Remember that every feature vector returned should have the same length.
-
     :param state: A state to be converted to a feature vector
     :return: A tuple of floats: a feature vector representing this state.
     """
 
-    # How many ships does p1 have in garrisons?
-    p1_garrisons = 0.0
-    # How many ships does p2 have in garrisons?
-    p2_garrisons = 0.0
+    # Features
+    p1_garrisons, p2_garrisons = 0.0, 0.0
+    p1_turns_per_ship, p2_turns_per_ship = 0.0, 0.0
+    p1_center_planets, p2_center_planets = 0.0, 0.0
+    p1_fleets, p2_fleets = 0.0, 0.0
+    p1_fleet_distance, p2_fleet_distance = 0.0, 0.0
+    # p1_planet_captured, p1_planet_captured = 0.0, 0.0
 
-    my_id = state.whose_turn()
-
-    for mine in state.planets(my_id):
+    for mine in state.planets(1):
         p1_garrisons += state.garrison(mine)
+        p1_turns_per_ship += 1.0 / mine.turns_per_ship()
+        coords = mine.coords()
+        if 0.25 < coords[0] < 0.75 and 0.25 < coords[1] < 0.75:
+            p1_center_planets += 1
 
-    for his in state.planets(state.planets(u.other(id))):
+    for his in state.planets(2):
         p2_garrisons += state.garrison(his)
-
-    # How many ships does p1 have in fleets?
-    p1_fleets = 0.0
-    # How many ships does p2 have in fleets?
-    p2_fleets = 0.0
+        p2_turns_per_ship += 1.0 / his.turns_per_ship()
+        coords = his.coords()
+        if 0.25 < coords[0] < 0.75 and 0.25 < coords[1] < 0.75:
+            p2_center_planets += 1
 
     for fleet in state.fleets():
+        planet = fleet.target()
         if fleet.owner() == 1:
             p1_fleets += fleet.size()
+            p1_fleet_distance += fleet.distance()
+            # if fleet.size() >= 20:
+            # p1_strong_fleets += 1
+            # if state.garrison(planet) <= fleet.size() and fleet.target() != 1:
+            # p1_planet_captured += 1
         else:
             p2_fleets += fleet.size()
+            p2_fleet_distance += fleet.distance()
+            # if fleet.size() >= 20:
+            #     p2_strong_fleets += 1
+            # if state.garrison(planet) <= fleet.size() and fleet.target() != 2:
+            #     p2_planet_captured += 1
 
-    return p1_garrisons, p2_garrisons, p1_fleets, p2_fleets
+    # , p1_turns_per_ship, p2_turns_per_ship, p1_center_planets, p2_center_planets, p1_fleets, p2_fleets, p1_fleet_distance, p2_fleet_distance
+
+    # I reduced the number of features for simplicity (for now)
+    feature_list = tuple([p1_garrisons, p2_garrisons, p1_fleets, p2_fleets])
+
+    feature_vector = float()
+
+    for L in range(1, len(feature_list) + 1):
+        # still need to add the squared value of a subset with a single item
+        for subset in itertools.combinations(feature_list, L):
+            product = reduce(mul, subset)
+            feature_vector += product,
+
+    print(feature_vector)
+    return feature_vector
